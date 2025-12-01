@@ -54,21 +54,24 @@ def main():
                 print("Getting a response ...\n")
 
                 # Get a response to image input
-                image_url = ORANGE_IMG_URL
-                image_format = "jpeg"
-                request = Request(image_url, headers={"User-Agent": "Mozilla/5.0"})
-                image_data = base64.b64encode(urlopen(request).read()).decode("utf-8")
-                data_url = f"data:image/{image_format};base64,{image_data}"
+                image_path = Path(__file__).parent / "images" / "mystery-fruit.jpeg"
+                mime_type = "image/jpeg"
 
+                # Read and encode the image file
+                with open(image_path, "rb") as image_file:
+                    base64_encoded_data = base64.b64encode(image_file.read()).decode('utf-8')
+
+                # Include the image file data in the prompt
+                data_url = f"data:{mime_type};base64,{base64_encoded_data}"
                 response = openai_client.chat.completions.create(
-                    model=model_deployment,
-                    messages=[
-                        {"role": "system", "content": system_message},
-                        { "role": "user", "content": [  
-                            { "type": "text", "text": prompt},
-                            { "type": "image_url", "image_url": {"url": data_url}}
-                        ] } 
-                    ]
+                        model=model_deployment,
+                        messages=[
+                            {"role": "system", "content": system_message},
+                            { "role": "user", "content": [  
+                                { "type": "text", "text": prompt},
+                                { "type": "image_url", "image_url": {"url": data_url}}
+                            ] } 
+                        ]
                 )
                 print(response.choices[0].message.content)
 
